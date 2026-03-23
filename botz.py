@@ -1,8 +1,7 @@
 # botz.py
 import os
-import asyncio
 import discord
-from discord.ext import commands, tasks
+from discord.ext import tasks
 import datetime
 from dotenv import load_dotenv
 
@@ -41,8 +40,10 @@ class Client(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    async def setup_hook(self) -> None:
-        self.my_background_task.start()
+    async def setup_hook(self):
+            self.morning_routine.start()
+            self.evening_routine.start()
+            self.night_routine.start()
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -81,49 +82,37 @@ class Client(discord.Client):
             log("!reboot command received")
             exit(0)
 
-    @tasks.loop(seconds=60)
-    async def my_background_task(self):
-        now = datetime.datetime.now()
-        if now.hour == 7 and now.minute == 30:
-            message = scheduling.get_morning_message()
-            channel = self.get_channel(int(CHANNEL_ID))
-            await channel.send(message)
-            log("Morning message sent")
-        if now.hour == 21 and now.minute == 30:
-            message = scheduling.get_night_message()
-            channel = self.get_channel(int(CHANNEL_ID))
-            await channel.send(message)
-            log("Night message sent")
-        if now.hour == 23 and now.minute == 50:
-            log("Testing streaks...")
-            message = scheduling.test_streaks()
-            channel = self.get_channel(int(CHANNEL_ID))
-            await channel.send(message)
-            log(message)
-        if now.hour == 0 and now.minute == 30:
-            log("Starting cleanup...")
-            erase_log = scheduling.cleanup_events()
-            log(erase_log)
+    @tasks.loop(time=datetime.time(hour=7, minute=30))
+    async def morning_routine(self):
+        message = scheduling.get_morning_message()
+        channel = self.get_channel(int(CHANNEL_ID))
+        await channel.send(message)
+        log("Morning message sent")
+        pass
 
-    @my_background_task.before_loop
-    async def before_my_task(self):
-        while True:
-            try:
-                if self.is_ready():
-                    log("wait_until_ready: already ready")
-                    break
-                ready = self.wait_for("ready", timeout=WAIT_UNTIL_READY_TIMEOUT)
-                resumed = self.wait_for("resumed", timeout=WAIT_UNTIL_READY_TIMEOUT)
-                await asyncio.wait([ready, resumed], return_when=asyncio.FIRST_COMPLETED)
-                ready.close()
-                resumed.close()
-                log("wait_until_ready: ready or resumed")
-                break
-            except TimeoutError:
-                log("wait_until_ready: timeout waiting for ready or resumed")
-                break
-            except BaseException as e:
-                log("error: exception in task before loop: %s", e)
+    @tasks.loop(time=datetime.time(hour=21, minute=30))
+    async def evening_routine(self):
+        message = scheduling.get_night_message()
+        channel = self.get_channel(int(CHANNEL_ID))
+        await channel.send(message)
+        log("Night message sent")
+
+    @tasks.loop(time=datetime.time(hour=23, minute=0))
+    async def night_routine(self):
+        log("Testing streaks...")
+        message = scheduling.test_streaks()
+        channel = self.get_channel(int(CHANNEL_ID))
+        await channel.send(message)
+        log("Starting cleanup...")
+        erase_log = scheduling.cleanup_events()
+        log(erase_log)
+
+    @morning_routine.before_loop
+    @evening_routine.before_loop
+    @night_routine.before_loop
+
+    async def before_tasks(self):
+        await self.wait_until_ready()
 
 intents = discord.Intents.default()
 intents.message_content = True
