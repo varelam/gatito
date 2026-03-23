@@ -1,3 +1,3 @@
 #!/bin/bash
-scp -r modules/*.py pi:~/botz/modules/
-scp botz.py pi:~/botz/
+scp -r modules/*.py asus:~/botz/modules/
+scp botz.py asus:~/botz/
