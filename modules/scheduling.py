@@ -44,7 +44,7 @@ def get_morning_message():
         message = message + build_reminder_message(event_nr_list, nota_list, formatted_datetime_list)
         message = message + "\nEstá na hora de sair da camita!"
     else:
-        message = "Bom dia senhores bubz! Espero que tenham um dia muito lindo sem tarefas!"
+        message = "Bom dia senhores bubz!"
     return message
 
 def get_night_message():
@@ -54,7 +54,7 @@ def get_night_message():
         message = message + build_reminder_message(event_nr_list, nota_list, formatted_datetime_list)
         message = message + "\nHora de ir para a camita! Bons soninhos!"
     else:
-        message = "Boas! Não há eventos para amanhã! Karty kime :sunglasses:"
+        message = None
     return message
 
 def compute_new_id(json_data):
@@ -115,7 +115,7 @@ def test_streaks():
     message = ""
     if "streaks" not in json_data:
         json_data["streaks"] = {}
-        return "Não há streaks no calendário..."
+        return None
 
     streaks = json_data["streaks"]
     current_year = datetime.datetime.now().year
