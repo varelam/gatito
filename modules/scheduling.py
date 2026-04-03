@@ -86,7 +86,7 @@ def increment_streak(topic, formatted_datetime, json_data):
 
     if not topic in json_data["streaks"]:
         json_data["streaks"][topic] = {
-            "days": 0,
+            "days": 1,
             "streak_freezes": 0,
             "last_update": formatted_datetime
         }
@@ -140,8 +140,6 @@ def test_streaks(json_data, ref_time):
         return {}
 
     for key, streak_data in json_data["streaks"].items():
-        print(key)
-        print(streak_data)
         new_streak_data, message = test_streak(streak_data, ref_time, key)
         if new_streak_data != {}:
             json_data["streaks"][key] = new_streak_data

@@ -1,6 +1,10 @@
 import datetime
 from modules import scheduling
 
+
+# def test_interpret_time():
+#     assert
+
 def test_empty_streak():
     streak_data = {}
     json_data = scheduling.increment_streak("test", "02-01", streak_data)
@@ -10,7 +14,7 @@ def test_empty_streak():
     assert("days" in streak_dic)
     assert("streak_freezes" in streak_dic)
     assert("last_update" in streak_dic)
-    assert(streak_dic["days"] == 0)
+    assert(streak_dic["days"] == 1)
     assert(streak_dic["streak_freezes"] == 0)
     assert(streak_dic["last_update"] == "02-01")
 

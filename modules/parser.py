@@ -110,7 +110,7 @@ def parse_nota(message):
                 )
     except Exception as e:
         feedback_str = "Houve um problema com a sua nota! O que se passou: " + str(e)
-    
+
     return feedback_str
 
 #TODO: add days of week
@@ -188,8 +188,7 @@ def update_streak(message):
 
         message_parts = message.split(header)
         topic=message_parts[len(message_parts)-1].strip()
-
-        streak_datetime = interpret_time("hoje")
+        streak_datetime, _ = interpret_time(convert_footer_to_dow("hoje"))
         output_format = "%d-%m"
         formatted_datetime = streak_datetime.strftime(output_format)
         json_data = scheduling.get_sched()
