@@ -80,65 +80,83 @@ def add_event(nota, formatted_datetime):
     commit_file(json_data)
     return latest_id
 
-def increment_streak(topic, formatted_datetime):
-    json_data = get_sched()
-    if "streaks" not in json_data:
+def increment_streak(topic, formatted_datetime, json_data):
+    if not "streaks" in json_data:
         json_data["streaks"] = {}
 
-    streaks = json_data["streaks"]
-    days = 0
-    streak_freezes = 0
-    if topic not in streaks:
-        json_data["streaks"][topic] = {}
-    else:
-        days = int(json_data["streaks"][topic]["days"])
-        streak_freezes = int(json_data["streaks"][topic]["streak_freezes"])
-        prev_formatted_time = json_data["streaks"][topic]["last_update"]
+    if not topic in json_data["streaks"]:
+        json_data["streaks"][topic] = {
+            "days": 0,
+            "streak_freezes": 0,
+            "last_update": formatted_datetime
+        }
+
+    days = int(json_data["streaks"][topic]["days"])
+    streak_freezes = int(json_data["streaks"][topic]["streak_freezes"])
+    prev_formatted_time = json_data["streaks"][topic]["last_update"]
 
     if(prev_formatted_time != formatted_datetime):
         days = days+1
-    else:
-        return -1
 
-    if((days % 15) == 0 and streak_freezes < 5):
+    if(days > 0 and (days % 5) == 0 and streak_freezes < 5):
         streak_freezes = streak_freezes+1
 
     json_data["streaks"][topic]["days"] = days
     json_data["streaks"][topic]["streak_freezes"] = streak_freezes
     json_data["streaks"][topic]["last_update"] = formatted_datetime
-    commit_file(json_data)
-    return days
+    return json_data
 
-def test_streaks():
-    json_data = get_sched()
+def test_streak(streak_data, ref_time, key):
+    if not "last_update" in streak_data:
+        return {}, ""
+
     date_format = "%d-%m"
-    message = ""
+    formatted_datetime = streak_data["last_update"]
+    date_obj = datetime.datetime.strptime(formatted_datetime, date_format)
+    ref_year = ref_time.year
+    date_obj = date_obj.replace(year=ref_year)
+
+    time_difference = (date_obj - ref_time)
+    if time_difference.days < -1:
+        if streak_data["streak_freezes"] > 0:
+            streak_data["streak_freezes"] = streak_data["streak_freezes"]-1
+            message = f"Usaste um streak freeze na streak de {key}! Tem cuidado\n"
+        elif time_difference.days > -4:
+            streak_data["days"] = 0
+            streak_data["streak_freezes"] = 0
+            message = f"Perdeste a streak de {key} esta semana!! Vamos voltar?\n"
+        else:
+            streak_data = {}
+            message = f"Perdeste a streak de {key} esta semana, mas eu não te volto a falar disso :))\n"
+    else:
+        message = ""
+
+    return streak_data, message
+
+def test_streaks(json_data, ref_time):
+    msg_list = []
     if "streaks" not in json_data:
         json_data["streaks"] = {}
-        return None
+        return {}
 
-    streaks = json_data["streaks"]
-    current_year = datetime.datetime.now().year
-    for key, topic in streaks.items():
-        formatted_datetime = topic["last_update"]
-        days = topic["days"]
-        streak_freezes = topic["streak_freezes"]
-        date_obj = datetime.datetime.strptime(formatted_datetime, date_format)
-        date_obj = date_obj.replace(year=current_year)
-        current_time = datetime.datetime.now()
-        time_difference = (date_obj - current_time)
-        if time_difference.days < -1:
-            if streak_freezes > 0:
-                streak_freezes = streak_freezes-1
-                message = message + "Usou um streak freeze na streak de {}!\n".format(key)
-            else:
-                days=0
-                streak_freezes=0
-                message = message + "Perdeste a streak de {}!!!!\n".format(key)
+    for key, streak_data in json_data["streaks"].items():
+        print(key)
+        print(streak_data)
+        new_streak_data, message = test_streak(streak_data, ref_time, key)
+        if new_streak_data != {}:
+            json_data["streaks"][key] = new_streak_data
+            msg_list.append(message)
 
-        json_data["streaks"][key]["days"] = days
-        json_data["streaks"][key]["streak_freezes"] = streak_freezes
+    return json_data, msg_list
+
+def test_streaks_message():
+    json_data = get_sched()
+    message = ""
+    current_time = datetime.datetime.now()
+    json_data, msg_list = test_streaks(json_data, current_time)
     commit_file(json_data)
+    for sub_msg in msg_list:
+        message.append(sub_msg)
     return message
 
 def get_sched():

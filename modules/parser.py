@@ -192,7 +192,10 @@ def update_streak(message):
         streak_datetime = interpret_time("hoje")
         output_format = "%d-%m"
         formatted_datetime = streak_datetime.strftime(output_format)
-        days = scheduling.increment_streak(topic, formatted_datetime)
+        json_data = scheduling.get_sched()
+        json_data = scheduling.increment_streak(topic, formatted_datetime, json_data)
+        scheduling.commit_file(json_data)
+        days = json_data["streaks"][topic]["days"]
 
         if days > 0:
             feedback_str = "Renovamos a sua streak de {}! Já vai em {} dias! :fire:".format(

@@ -42,6 +42,7 @@ class Client(discord.Client):
     async def setup_hook(self):
             self.morning_routine.start()
             self.evening_routine.start()
+            self.streak_routine.start()
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -96,8 +97,10 @@ class Client(discord.Client):
             await channel.send(message)
         log("Night message sent")
 
+    @tasks.loop(time=datetime.time(hour=23, minute=50))
+    async def streak_routine(self):
         log("Testing streaks...")
-        message = scheduling.test_streaks()
+        message = scheduling.test_streaks_message()
         if message != None:
             channel = self.get_channel(int(CHANNEL_ID))
             await channel.send(message)
@@ -108,6 +111,7 @@ class Client(discord.Client):
 
     @morning_routine.before_loop
     @evening_routine.before_loop
+    @streak_routine.before_loop
 
     async def before_tasks(self):
         await self.wait_until_ready()
