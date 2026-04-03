@@ -1,4 +1,4 @@
-# botz.py
+# gatito.py
 import os
 import discord
 from discord.ext import tasks
@@ -13,7 +13,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 CHANNEL_ID = os.getenv('CAMINHA_ID')
 
 ajuda_txt = '''
-Boas! Bem-vindo à ajuda do botz - bot dos bubz!
+Boas! Bem-vindo à ajuda do gatito - bot do discord!
 1. Na dúvida, pede uma !ajuda
 2. Para já podes fazer uma !nota e dizer quando queres ser lembrado\n
 \t2.1.  Instruções: "!nota \"[mensagem com espaços]\" [dia da semana]"\n
@@ -28,7 +28,7 @@ def log(message):
     now = datetime.datetime.now()
     iso_now = now.strftime('%Y-%m-%d %H:%M:%S')
     print("{} RUNTIME  {}".format(iso_now,message))
-    log_filename = "botz.log"
+    log_filename = "gatito.log"
     if not os.path.exists(log_filename):
         with open(log_filename, 'w') as file:
             file.write('')
