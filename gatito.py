@@ -39,57 +39,54 @@ def log(message):
     with open(log_filename, 'a') as file:
         file.write("{} RUNTIME  {}\n".format(iso_now,message))
 
+def process_messages(message):
+    if "!ajuda" in message:
+        log("!ajuda command received")
+        reply = ajuda_txt
+
+    if "!nota" in message:
+        log("!nota command received")
+        reply = parser.parse_nota(message)
+
+    if "!lista" in message:
+        log("!lista command received")
+        reply = parser.list_notas()
+
+    if message.startswith("!cancelar"):
+        log("!cancelar command received")
+        reply = parser.erase_nota(message)
+
+    if message.startswith("!streak"):
+        log("!streak command received")
+        reply = parser.update_streak(message)
+
+    if "!progresso" in message:
+        log("!progresso command received")
+        reply = parser.load_list_streaks()
+
+    log("Reply: "+ reply)
+    return reply
+
 class Client(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     async def setup_hook(self):
-            self.morning_routine.start()
-            self.evening_routine.start()
-            self.streak_routine.start()
+        self.morning_routine.start()
+        self.evening_routine.start()
+        self.streak_routine.start()
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
-        if "!ajuda" in message.content:
-            log("!ajuda command received")
-            await message.channel.send(ajuda_txt)
-            log("!ajuda command sent")
-
-        if "!nota" in message.content:
-            log("!nota command received")
-            feedback_str = parser.parse_nota(message.content)
-            await message.channel.send(feedback_str)
-            log("Reply: "+feedback_str)
-
-        if "!lista" in message.content:
-            log("!lista command received")
-            feedback_str = parser.list_notas()
-            await message.channel.send(feedback_str)
-            log("Reply: "+feedback_str)
-
-        if message.content.startswith("!cancelar"):
-            log("!cancelar command received")
-            feedback_str = parser.erase_nota(message.content)
-            await message.channel.send(feedback_str)
-            log("Reply: "+feedback_str)
-
-        if message.content.startswith("!streak"):
-            log("!streak command received")
-            feedback_str = parser.update_streak(message.content)
-            if len(feedback_str):
-                await message.channel.send(feedback_str)
-            log("Reply: "+feedback_str)
-
-        if "!progresso" in message.content:
-            log("!progresso command received")
-            feedback_str = parser.load_list_streaks()
-            await message.channel.send(feedback_str)
-            log("Reply: "+feedback_str)
 
         if message.content.startswith("!reboot"):
             log("!reboot command received")
             exit(0)
+
+        reply = process_messages(message.content)
+        if len(reply):
+            await message.channel.send(reply)
 
     @tasks.loop(time=datetime.time(hour=7, minute=30))
     async def morning_routine(self):
