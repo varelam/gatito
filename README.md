@@ -14,7 +14,7 @@ All on Discord, that you always check! Some more commands:
 - Cancel a note by ID: `!cancelar 4`
 - And ask for help if you ever forget how it works: `!ajuda`
 
-## Note taking under 3 seconds with reminders
+## Duolingo style streaks
 
 I can keep track of my music studying streak:
 
