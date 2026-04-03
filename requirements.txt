@@ -1,2 +1,2 @@
 discord
-dot-env
+dotenv
