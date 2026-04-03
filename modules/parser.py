@@ -114,33 +114,37 @@ def parse_nota(message):
     return feedback_str
 
 #TODO: add days of week
+def get_notas_list_as_str(json_data):
+    feedback_str = ""
+    for event_str, event in json_data.items():
+        event_number = -1
+        if(event_str.startswith("event_")):
+            event_number = int(event_str.split('_')[1])
+            nota = event["nota"]
+            formatted_datetime = event["event_datetime"]
+            if len(formatted_datetime):
+                feedback_str = feedback_str + "\nNota **{}**: **\"{}\"**, no dia **{}**".format(
+                    event_number,
+                    nota,
+                    formatted_datetime
+                    )
+
+    for event_str, event in json_data.items():
+            event_number = -1
+            if(event_str.startswith("event_")):
+                event_number = int(event_str.split('_')[1])
+                nota = event["nota"]
+                formatted_datetime = event["event_datetime"]
+                if len(formatted_datetime) == 0:
+                    feedback_str = feedback_str + "\nNota **{}**: **\"{}\"**".format(
+                        event_number,
+                        nota)
+    return feedback_str
+
 def list_notas():
     try:
-        feedback_str = ""
         json_data = scheduling.get_sched()
-        for event_str, event in json_data.items():
-                event_number = -1
-                if(event_str.startswith("event_")):
-                    event_number = int(event_str.split('_')[1])
-                    nota = event["nota"]
-                    formatted_datetime = event["event_datetime"]
-                    if len(formatted_datetime):
-                        feedback_str = feedback_str + "\nNota **{}**: **\"{}\"**, no dia **{}**".format(
-                            event_number,
-                            nota,
-                            formatted_datetime
-                            )
-
-        for event_str, event in json_data.items():
-                event_number = -1
-                if(event_str.startswith("event_")):
-                    event_number = int(event_str.split('_')[1])
-                    nota = event["nota"]
-                    formatted_datetime = event["event_datetime"]
-                    if len(formatted_datetime) == 0:
-                        feedback_str = feedback_str + "\nNota **{}**: **\"{}\"**".format(
-                            event_number,
-                            nota)
+        feedback_str = get_notas_list_as_str(json_data)
 
     except Exception as e:
         feedback_str = "Houve um problema! O que se passou: " + str(e)
@@ -188,9 +192,6 @@ def update_streak(message):
 
         message_parts = message.split(header)
         topic=message_parts[len(message_parts)-1].strip()
-        current_date = datetime.datetime.now()
-        current_dow = current_date.weekday()
-
         streak_datetime, _ = interpret_time(convert_footer_to_dow("hoje"), datetime.datetime.now())
         output_format = "%d-%m"
         formatted_datetime = streak_datetime.strftime(output_format)
@@ -209,4 +210,28 @@ def update_streak(message):
     except Exception as e:
         feedback_str = "Houve um problema com a sua streak! O que se passou: " + str(e)
 
+    return feedback_str
+
+def list_streaks(streak_data):
+    if streak_data == {}:
+        feedback_str = "\nNão há streaks ativas\n"
+    else:
+        feedback_str = "\n**Aqui estão as stats das streaks:**\n"
+        for key, content in streak_data.items():
+            if "days" in content and "streak_freezes" in content:
+                feedback_str += f" - '{key}': {content["days"]} dias, {content["streak_freezes"]} streak freezes"
+
+    return feedback_str
+
+def load_list_streaks():
+    try:
+        json_data = scheduling.get_sched()
+        if "streaks" in json_data:
+            streak_data = json_data["streaks"]
+        else:
+            streak_data = {}
+        feedback_str = list_streaks(streak_data)
+
+    except Exception as e:
+        feedback_str = "Houve um problema! O que se passou: " + str(e)
     return feedback_str

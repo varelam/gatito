@@ -2,6 +2,17 @@ import datetime
 from modules import parser
 from modules import scheduling
 
+class CL:
+    NONE        = "\033[0m"
+    RED         = "\033[31m"
+    GREEN       = "\033[32m"
+    YELLOW      = "\033[33m"
+    BLUE        = "\033[36m"
+    BG_RED      = "\033[41m"
+    BG_GREEN    = "\033[42m"
+    BG_YELLOW   = "\033[43m"
+    BG_BLUE     = "\033[46m"
+
 def test_interpret_time():
     # Thursday, scheduling today
     test_time = datetime.datetime.strptime("23:50:00-01-01-2026", "%H:%M:%S-%d-%m-%Y") # Thursday
@@ -25,6 +36,34 @@ def test_parse_nota_time():
     assert(nota_str == "I like cats but dogs are nice too")
     assert(dow_key == "SABADO")
     assert(dow == 5)
+
+def test_list_all_notas():
+    notas = {
+        "event_0": {
+            "nota": "test",
+            "event_datetime": "06-04"
+        },
+        "event_1": {
+            "nota": " test",
+            "event_datetime": ""
+        }
+    }
+    feedback_str = parser.get_notas_list_as_str(notas)
+    print(f"{CL.GREEN}[Test]{CL.NONE} Printing test notas:{CL.BLUE}{feedback_str}{CL.NONE}")
+
+def test_list_streaks():
+    feedback_str = parser.list_streaks({})
+    print(f"{CL.GREEN}[Test]{CL.NONE} Printing test streaks:{CL.BLUE}{feedback_str}{CL.NONE}")
+
+    streak_data = {
+        "teste": {
+            "days": 1,
+            "streak_freezes": 0,
+            "last_update": "03-04"
+        }
+    }
+    feedback_str = parser.list_streaks(streak_data)
+    print(f"{CL.GREEN}[Test]{CL.NONE} Printing test streaks:{CL.BLUE}{feedback_str}{CL.NONE}")
 
 def test_empty_streak():
     streak_data = {}
@@ -145,11 +184,10 @@ def test_test_streak_many():
     assert(len(msg_list) == 2)
 
 if __name__ == "__main__":
-    # parser
     test_interpret_time()
     test_parse_nota_time()
-
-    # scheduling
+    test_list_all_notas()
+    test_list_streaks()
     test_empty_streak()
     test_increment_streak()
     test_2weeks_streak()

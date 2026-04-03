@@ -22,6 +22,10 @@ Boas! Bem-vindo à ajuda do gatito - bot do discord!
 3. Podes listar os eventos todos com !lista
 4. Podes apagar os eventos com !cancelar [número do evento]
 \t4.1   Podes ainda !cancelar tudo - cuidado!
+5. Streaks tipo duolingo:
+\t5.1   Podes começar uma streak diária com o comando !streak <a-tua-cena>
+\t5.2   Podes ver o teu progress usando o comando !progresso
+\t5.3   As streaks caducam à meia-noite UTC
 '''
 
 def log(message):
@@ -75,6 +79,12 @@ class Client(discord.Client):
             feedback_str = parser.update_streak(message.content)
             if len(feedback_str):
                 await message.channel.send(feedback_str)
+            log("Reply: "+feedback_str)
+
+        if "!progresso" in message.content:
+            log("!progresso command received")
+            feedback_str = parser.load_list_streaks()
+            await message.channel.send(feedback_str)
             log("Reply: "+feedback_str)
 
         if message.content.startswith("!reboot"):
