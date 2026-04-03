@@ -1,9 +1,30 @@
 import datetime
+from modules import parser
 from modules import scheduling
 
+def test_interpret_time():
+    # Thursday, scheduling today
+    test_time = datetime.datetime.strptime("23:50:00-01-01-2026", "%H:%M:%S-%d-%m-%Y") # Thursday
+    event_datetime, weekday = parser.interpret_time(parser.Week.TODAY, test_time)
+    assert(event_datetime.day == test_time.day)
+    assert(weekday == 3) # mon = 0, thu = 3
 
-# def test_interpret_time():
-#     assert
+    # Thursday, scheduling Monday
+    test_time = datetime.datetime.strptime("23:50:00-01-01-2026", "%H:%M:%S-%d-%m-%Y") # Thursday
+    event_datetime, weekday = parser.interpret_time(parser.Week.MON, test_time)
+    assert(event_datetime.day == test_time.day + 4)
+    assert(weekday == 0) # mon = 0
+
+def test_parse_nota_time():
+    nota_str, dow_key, dow = parser.parse_nota_time("!nota test 2a")
+    assert(nota_str == "test")
+    assert(dow_key == "2a")
+    assert(dow == 0)
+
+    nota_str, dow_key, dow = parser.parse_nota_time("!nota I like cats but dogs are nice too SABADO")
+    assert(nota_str == "I like cats but dogs are nice too")
+    assert(dow_key == "SABADO")
+    assert(dow == 5)
 
 def test_empty_streak():
     streak_data = {}
@@ -124,6 +145,11 @@ def test_test_streak_many():
     assert(len(msg_list) == 2)
 
 if __name__ == "__main__":
+    # parser
+    test_interpret_time()
+    test_parse_nota_time()
+
+    # scheduling
     test_empty_streak()
     test_increment_streak()
     test_2weeks_streak()

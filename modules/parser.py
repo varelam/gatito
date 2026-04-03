@@ -56,9 +56,8 @@ def convert_weekday_to_str(weekday):
 
     return weekday_str
 
-def interpret_time(nota_dow):
-    current_date = datetime.datetime.now()
-    current_dow = current_date.weekday()
+def interpret_time(nota_dow, ref_datetime):
+    current_dow = ref_datetime.weekday()
     if (nota_dow == Week.TODAY):
         days_until_event = 0
     else:
@@ -66,39 +65,40 @@ def interpret_time(nota_dow):
         if(days_until_event<=0):
             days_until_event=days_until_event+7
 
-    event_datetime = current_date + datetime.timedelta(days=days_until_event)
+    event_datetime = ref_datetime + datetime.timedelta(days=days_until_event)
     weekday = event_datetime.weekday()
     return event_datetime, weekday
 
-def parse_nota(message):
+def parse_nota_time(message):
     header = "!nota"
+    if(message.strip() == header):
+        raise Exception("A sua !nota está vazia")
+
+    message_parts = message.split(header)
+    if(len(message_parts)>2):
+        raise Exception("Lamentamos mas só conseguimos uma nota de cada vez")
+
+    message_payload=message_parts[len(message_parts)-1].strip()
+    parts = message_payload.split()
+    dow_key = parts[len(parts)-1].strip()
+    nota  = message_payload.split(dow_key);
+    if(nota == ""):
+        raise Exception("A sua nota está vazia")
+
+    nota_str = nota[0].strip()
+    dow = convert_footer_to_dow(dow_key)
+    return nota_str, dow_key, dow
+
+def parse_nota(message):
     feedback_str = ""
+    nota, dow_key, nota_dow = parse_nota_time(message)
     try:
-        if(message.strip() == header):
-           raise Exception("A sua !nota está vazia")
-
-        # split original message, header might be in the middle, lets go to start
-        message_parts = message.split(header)
-
-        if(len(message_parts)>2):
-           raise Exception("Lamentamos mas só conseguimos uma nota de cada vez")
-
-        message_payload=message_parts[len(message_parts)-1].strip()
-        parts = message_payload.split()
-
-        dow_footer = parts[len(parts)-1].strip()
-        nota  = message_payload.split(dow_footer);
-        if(nota == ""):
-            raise Exception("A sua nota está vazia")
-
-        nota = nota[0].strip()
-        nota_dow = convert_footer_to_dow(dow_footer)
         if nota_dow == Week.EMPTY:
-            nota = nota + " " + dow_footer
+            nota = nota + " " + dow_key
             event_id = scheduling.add_event(nota, "")
             feedback_str = "Agendei a seguinte nota: **\"{}\"**. Para cancelar usar o comando !cancelar {}".format(nota, event_id)
         else:
-            event_datetime, weekday = interpret_time(nota_dow)
+            event_datetime, weekday = interpret_time(nota_dow, datetime.datetime.now())
             output_format = "%d-%m"
             formatted_datetime = event_datetime.strftime(output_format)
             weekday_str = convert_weekday_to_str(weekday)
@@ -107,7 +107,7 @@ def parse_nota(message):
                 nota, weekday_str,
                 formatted_datetime,
                 event_id
-                )
+            )
     except Exception as e:
         feedback_str = "Houve um problema com a sua nota! O que se passou: " + str(e)
 
@@ -188,7 +188,10 @@ def update_streak(message):
 
         message_parts = message.split(header)
         topic=message_parts[len(message_parts)-1].strip()
-        streak_datetime, _ = interpret_time(convert_footer_to_dow("hoje"))
+        current_date = datetime.datetime.now()
+        current_dow = current_date.weekday()
+
+        streak_datetime, _ = interpret_time(convert_footer_to_dow("hoje"), datetime.datetime.now())
         output_format = "%d-%m"
         formatted_datetime = streak_datetime.strftime(output_format)
         json_data = scheduling.get_sched()
