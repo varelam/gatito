@@ -145,6 +145,8 @@ def list_notas():
     try:
         json_data = scheduling.get_sched()
         feedback_str = get_notas_list_as_str(json_data)
+        if feedback_str == "":
+            feedback_str = "Não há notas para listar!"
 
     except Exception as e:
         feedback_str = "Houve um problema! O que se passou: " + str(e)

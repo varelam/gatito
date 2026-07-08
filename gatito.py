@@ -103,12 +103,13 @@ class Client(discord.Client):
             channel = self.get_channel(int(CHANNEL_ID))
             await channel.send(message)
         log("Night message sent")
+        pass
 
     @tasks.loop(time=datetime.time(hour=23, minute=50))
     async def streak_routine(self):
         log("Testing streaks...")
         message = scheduling.test_streaks_message()
-        if message != None:
+        if message != "":
             channel = self.get_channel(int(CHANNEL_ID))
             await channel.send(message)
 
