@@ -1,8 +1,25 @@
 import json
 import os
 import datetime
+import random
 
 sched_filename = "sched.json"
+
+morning_messages = [
+    "Bom dia senhores bubz!",
+    "zzzzzzzzzzzzzzzzzzzzzzzz, eepy",
+    "Está na hora de sair da camita!",
+    "Hard at wokys? Bom dia!",
+    "Bom dia! Tenham um excelente dia!!!",
+    "eepy eepy eepy eepy eepy eepy",
+    "Bonjour monsieurs bubz",
+    "Good mornin Mr and Mrs bubz! How are we doing today?",
+    "¡Buenos días, Señor e Senhorita Bubz! ¿Cómo estamos hoy?",
+    "Bonjour bubz! Comment allez-vous aujourd'hui ?",
+    "Huomenta herra ja naista bubz! Mitä menee?",
+    "Goedemorgen, bubz! Hoe gaat het vandaag?",
+    "Hoje vai ser um bom dia! Vamos!"
+]
 
 def parse_events_by_day(lower_bound_days, upper_bound_days):
     json_data = get_sched()
@@ -37,14 +54,18 @@ def build_reminder_message(event_nr_list, nota_list, formatted_datetime_list):
             )
     return message
 
+def rand_morning_message():
+    return morning_messages[random.randint(0, len(morning_messages)-1)]
+
 def get_morning_message():
     event_nr_list, nota_list, formatted_datetime_list = parse_events_by_day(0, 0)
+    message = rand_morning_message() + "\n"
+
     if len(event_nr_list):
-        message = "Bom dia! Não esquecer o que há para fazer hoje!\n"
+        message = message + "Não esquecer o que há para fazer hoje!\n"
         message = message + build_reminder_message(event_nr_list, nota_list, formatted_datetime_list)
         message = message + "\nEstá na hora de sair da camita!"
-    else:
-        message = "Bom dia senhores bubz!"
+
     return message
 
 def get_night_message():
