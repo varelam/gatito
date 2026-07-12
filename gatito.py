@@ -4,6 +4,9 @@ import discord
 from discord.ext import tasks
 import datetime
 from dotenv import load_dotenv
+import asyncio
+import threading
+from flask import Flask, request
 
 from modules import parser
 from modules import scheduling
@@ -71,10 +74,16 @@ class Client(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    app = Flask(__name__)
+    def run_http(self):
+        self.app.run(port=5000)
+
     async def setup_hook(self):
         self.morning_routine.start()
         self.evening_routine.start()
         self.streak_routine.start()
+
+        threading.Thread(target=self.run_http, daemon=True).start()
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -87,6 +96,23 @@ class Client(discord.Client):
         reply = process_messages(message.content)
         if len(reply):
             await message.channel.send(reply)
+
+    @app.route("/message", methods=["POST"])
+    def send_message():
+        try:
+            message = request.json.get("message")
+            if message != None:
+                channel = client.get_channel(int(CHANNEL_ID))
+                asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                log(f'Custom message issued from HTTP: {message}')
+            else:
+                log(f'Unable to send custom message: not a string')
+
+            return "OK"
+        except Exception as e:
+            error_message = f"Unable to send custom message: {e}"
+            log(error_message)
+            return error_message
 
     @tasks.loop(time=datetime.time(hour=7, minute=30))
     async def morning_routine(self):

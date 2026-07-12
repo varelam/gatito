@@ -21,3 +21,11 @@ I can keep track of my music studying streak:
 ```!streak music```
 
 And I will be keeping a streak: with streak freezes every 5 days and a timeout if I slack off too much 
+
+
+## Send custom messages
+
+You can use the HTTP API to send custom messages:
+```
+curl -X POST -H "Content-Type: application/json" -d '{"message": "This is my test message"}' http://127.0.0.1:5000/message
+```
